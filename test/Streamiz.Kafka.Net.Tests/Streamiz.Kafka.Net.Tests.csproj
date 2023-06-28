@@ -9,9 +9,9 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <StartupObject></StartupObject>
-    <PackageVersion>1.4.3.beta</PackageVersion>
-    <AssemblyVersion>1.4.3.beta</AssemblyVersion>
-    <FileVersion>1.4.3.beta</FileVersion>
+    <PackageVersion>1.4.3</PackageVersion>
+    <AssemblyVersion>1.4.3</AssemblyVersion>
+    <FileVersion>1.4.3</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
