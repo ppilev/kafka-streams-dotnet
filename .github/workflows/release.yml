@@ -42,5 +42,9 @@ jobs:
       run: dotnet pack metrics/Streamiz.Kafka.Net.Metrics.Prometheus/Streamiz.Kafka.Net.Metrics.Prometheus.csproj --configuration Release --no-build --no-restore
     - name: Pack Metrics OpenTelemetry
       run: dotnet pack metrics/Streamiz.Kafka.Net.Metrics.OpenTelemetry/Streamiz.Kafka.Net.Metrics.OpenTelemetry.csproj --configuration Release --no-build --no-restore
-    - name: Publish in nuget.org
-      run: dotnet nuget push **/*.nupkg -k ${{ secrets.NUGET_PACKAGE_TOKEN }} -s https://api.nuget.org/v3/index.json -n -d   
+    #- name: Publish in nuget.org
+    #  run: dotnet nuget push **/*.nupkg -k ${{ secrets.NUGET_PACKAGE_TOKEN }} -s https://api.nuget.org/v3/index.json -n -d   
+    - name: Publish in github
+      run: dotnet nuget push **/*.nupkg -s "github" --skip-duplicate
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
