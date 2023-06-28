@@ -35,3 +35,7 @@ jobs:
       run: dotnet build --configuration Release --no-restore
     - name: Test
       run: dotnet test --no-build --no-restore --verbosity normal --configuration Release test/Streamiz.Kafka.Net.Tests/Streamiz.Kafka.Net.Tests.csproj
+    - name: Publish in github
+      run: dotnet nuget push **/*.nupkg -s "github" --skip-duplicate
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
