@@ -2,10 +2,10 @@
 
     <PropertyGroup>
         <TargetFrameworks>netstandard2.0;net5.0;net6.0</TargetFrameworks>
-        <Version>1.4.2</Version>
-        <PackageVersion>1.4.2</PackageVersion>
-        <AssemblyVersion>1.4.2</AssemblyVersion>
-        <FileVersion>1.4.2</FileVersion>
+        <Version>1.4.3-beta</Version>
+        <PackageVersion>1.4.3-beta</PackageVersion>
+        <AssemblyVersion>1.4.3-beta</AssemblyVersion>
+        <FileVersion>1.4.3-beta</FileVersion>
         <SignAssembly>true</SignAssembly>
         <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
