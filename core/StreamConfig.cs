@@ -92,6 +92,13 @@ namespace Streamiz.Kafka.Net
         ProducerConfig ToProducerConfig(string clientId);
 
         /// <summary>
+        /// Get the configs to the external <see cref="IProducer{TKey, TValue}"/> with specific <paramref name="clientId"/>
+        /// </summary>
+        /// <param name="clientId">Producer client ID</param>
+        /// <returns>Return <see cref="ProducerConfig"/> for building <see cref="IProducer{TKey, TValue}"/> instance.</returns>
+        ProducerConfig ToExternalProducerConfig(string clientId);
+
+        /// <summary>
         /// Get the configs to the <see cref="IConsumer{TKey, TValue}"/>
         /// </summary>
         /// <returns>Return <see cref="ConsumerConfig"/> for building <see cref="IConsumer{TKey, TValue}"/> instance.</returns>
@@ -120,6 +127,13 @@ namespace Streamiz.Kafka.Net
         /// <param name="clientId">Consumer client ID</param>
         /// <returns>Return <see cref="ConsumerConfig"/> for building <see cref="IConsumer{TKey, TValue}"/> instance.</returns>
         ConsumerConfig ToGlobalConsumerConfig(string clientId);
+
+        /// <summary>
+        /// Get the configs to the external <see cref="IConsumer{TumerKey, TValue}"/> with specific <paramref name="clientId"/>
+        /// </summary>
+        /// <param name="clientId">Consumer client ID</param>
+        /// <returns>Return <see cref="ConsumerConfig"/> for building <see cref="IConsumer{TKey, TValue}"/> instance.</returns>
+        ConsumerConfig ToExternalConsumerConfig(string clientId);
 
         /// <summary>
         /// Get the configs to the <see cref="IAdminClient"/> with specific <paramref name="clientId"/>
@@ -157,7 +171,7 @@ namespace Streamiz.Kafka.Net
         /// <summary>
         /// Production exception handling function called when kafka produce exception is raise.
         /// </summary>
-        Func<DeliveryReport<byte[], byte[]>, ExceptionHandlerResponse> ProductionExceptionHandler { get; set; }
+        Func<DeliveryReport<byte[], byte[]>, ProductionExceptionHandlerResponse> ProductionExceptionHandler { get; set; }
 
         /// <summary>
         /// Maximum allowed time between calls to consume messages (e.g., rd_kafka_consumer_poll())
@@ -265,7 +279,7 @@ namespace Streamiz.Kafka.Net
         string StateDir { get; set; }
 
         /// <summary>
-        /// The replication factor for change log topics topics created by the stream processing application. Default is 1.
+        /// The replication factor for change log topics topics created by the stream processing application. Default is -1, meaning default broker replication factor setting.
         /// </summary>
         int ReplicationFactor { get; set; }
 
@@ -512,16 +526,20 @@ namespace Streamiz.Kafka.Net
         private const string globalConsumerPrefix = "global.consumer.";
         private const string restoreConsumerPrefix = "restore.consumer.";
         private const string producerPrefix = "producer.";
+        private const string externalConsumerPrefix = "external.consumer.";
+        private const string externalProducerPrefix = "external.producer.";
 
         private ConsumerConfig _consumerConfig = null;
         private ProducerConfig _producerConfig = null;
         private AdminClientConfig _adminClientConfig = null;
         private ClientConfig _config = null;
 
-        private ConsumerConfig _overrideMainConsumerConfig = new();
-        private ConsumerConfig _overrideGlobalConsumerConfig = new();
-        private ConsumerConfig _overrideRestoreConsumerConfig = new();
-        private ConsumerConfig _overrideProducerConfig = new();
+        private readonly ConsumerConfig _overrideMainConsumerConfig = new();
+        private readonly ConsumerConfig _overrideGlobalConsumerConfig = new();
+        private readonly ConsumerConfig _overrideRestoreConsumerConfig = new();
+        private readonly ConsumerConfig _overrideExternalConsumerConfig = new();
+        private readonly ProducerConfig _overrideProducerConfig = new();
+        private readonly ProducerConfig _overrideExternalProducerConfig = new();
         
         private readonly List<IStreamMiddleware> middlewares = new();
 
@@ -1931,7 +1949,7 @@ namespace Streamiz.Kafka.Net
 
         /// <summary>
         /// Name of partition assignment strategy to use when elected group leader assigns
-        /// partitions to group members. default: range,roundrobin importance: medium
+        /// partitions to group members. default: range importance: medium
         /// </summary>
         [StreamConfigProperty("partition.assignment.strategy")]
         public PartitionAssignmentStrategy? PartitionAssignmentStrategy { get { return _consumerConfig.PartitionAssignmentStrategy; } set { _consumerConfig.PartitionAssignmentStrategy = value; } }
@@ -2246,14 +2264,14 @@ namespace Streamiz.Kafka.Net
             MaxPollRecords = 500;
             MaxPollRestoringRecords = 1000;
             MaxTaskIdleMs = 0;
-            BufferedRecordsPerPartition = 1000;
+            BufferedRecordsPerPartition = Int32.MaxValue;
             InnerExceptionHandler = (_) => ExceptionHandlerResponse.FAIL;
-            ProductionExceptionHandler = (_) => ExceptionHandlerResponse.FAIL;
+            ProductionExceptionHandler = (_) => ProductionExceptionHandlerResponse.FAIL;
             DeserializationExceptionHandler = (_, _, _) => ExceptionHandlerResponse.FAIL;
             RocksDbConfigHandler = (_, _) => { };
             FollowMetadata = false;
             StateDir = Path.Combine(Path.GetTempPath(), "streamiz-kafka-net");
-            ReplicationFactor = 1;
+            ReplicationFactor = -1;
             WindowStoreChangelogAdditionalRetentionMs = (long)TimeSpan.FromDays(1).TotalMilliseconds;
             OffsetCheckpointManager = null;
             MetricsIntervalMs = (long)TimeSpan.FromSeconds(30).TotalMilliseconds;
@@ -2358,6 +2376,10 @@ namespace Streamiz.Kafka.Net
                     SetObject(_overrideRestoreConsumerConfig, key.Replace(restoreConsumerPrefix, string.Empty), value);
                 else if (key.StartsWith(producerPrefix))
                     SetObject(_overrideProducerConfig, key.Replace(producerPrefix, string.Empty), value);
+                else if(key.StartsWith(externalConsumerPrefix))
+                    SetObject(_overrideExternalConsumerConfig, key.Replace(externalConsumerPrefix, string.Empty), value);
+                else if(key.StartsWith(externalProducerPrefix))
+                    SetObject(_overrideExternalProducerConfig, key.Replace(externalProducerPrefix, string.Empty), value);
                 else
                     configProperties.AddOrUpdate(key, (object)value);
             }
@@ -2550,6 +2572,7 @@ namespace Streamiz.Kafka.Net
         /// Maximum number of records to buffer per partition. (Default: 1000)
         /// </summary>
         [StreamConfigProperty("" + bufferedRecordsPerPartitionCst)]
+        [Obsolete("Librdkafka clients manage internally a backpressure. So this configuration will be remove in the next release.")]
         public long BufferedRecordsPerPartition
         {
             get => configProperties[bufferedRecordsPerPartitionCst];
@@ -2568,7 +2591,7 @@ namespace Streamiz.Kafka.Net
         }
 
         /// <summary>
-        /// The replication factor for change log topics topics created by the stream processing application. Default is 1.
+        /// The replication factor for change log topics topics created by the stream processing application. Default is -1, meaning default broker replication factor setting.
         /// </summary>
         [StreamConfigProperty("" + replicationFactorCst)]
         public int ReplicationFactor
@@ -2631,7 +2654,7 @@ namespace Streamiz.Kafka.Net
         /// Production exception handling function called when kafka produce exception is raise.
         /// </summary>
         [StreamConfigProperty("" + productionExceptionHandlerCst)]
-        public Func<DeliveryReport<byte[], byte[]>, ExceptionHandlerResponse> ProductionExceptionHandler  
+        public Func<DeliveryReport<byte[], byte[]>, ProductionExceptionHandlerResponse> ProductionExceptionHandler  
         {
             get => configProperties[productionExceptionHandlerCst];
             set => configProperties.AddOrUpdate(productionExceptionHandlerCst, value);
@@ -2748,6 +2771,20 @@ namespace Streamiz.Kafka.Net
         }
 
         /// <summary>
+        /// Get the configs to the external <see cref="IProducer{TKey, TValue}"/> with specific <paramref name="clientId"/>
+        /// </summary>
+        /// <param name="clientId">Producer client ID</param>
+        /// <returns>Return <see cref="ProducerConfig"/> for building <see cref="IProducer{TKey, TValue}"/> instance.</returns>
+        public ProducerConfig ToExternalProducerConfig(string clientId)
+        {
+            ProducerConfig config = new ProducerConfig(_producerConfig.Union(_config).Distinct(new KeyValueComparer()).ToDictionary());
+            foreach(var kv in _overrideExternalProducerConfig)
+                config.Set(kv.Key, kv.Value);
+            config.ClientId = clientId;
+            return config;
+        }
+
+        /// <summary>
         /// Get the configs to the <see cref="IConsumer{TKey, TValue}"/>
         /// </summary>
         /// <returns>Return <see cref="ConsumerConfig"/> for building <see cref="IConsumer{TKey, TValue}"/> instance.</returns>
@@ -2772,6 +2809,27 @@ namespace Streamiz.Kafka.Net
                 foreach (var kv in _overrideMainConsumerConfig)
                     config.Set(kv.Key, kv.Value);
             }
+            config.GroupId = ApplicationId;
+            config.ClientId = clientId;
+            return config;
+        }
+
+        /// <summary>
+        /// Get the configs to the external <see cref="IConsumer{TumerKey, TValue}"/> with specific <paramref name="clientId"/>
+        /// </summary>
+        /// <param name="clientId">Consumer client ID</param>
+        /// <returns>Return <see cref="ConsumerConfig"/> for building <see cref="IConsumer{TKey, TValue}"/> instance.</returns>
+        public ConsumerConfig ToExternalConsumerConfig(string clientId)
+        {
+            if (!configProperties.ContainsKey(applicatonIdCst))
+                throw new StreamConfigException($"Key {applicatonIdCst} was not found. She is mandatory for getting consumer config");
+
+            var config = new ConsumerConfig(_consumerConfig.Union(_config).Distinct(new KeyValueComparer()).ToDictionary());
+            foreach (var kv in _overrideExternalConsumerConfig)
+                config.Set(kv.Key, kv.Value);
+            
+            config.EnableAutoCommit = false;
+            config.EnableAutoOffsetStore = false;
             config.GroupId = ApplicationId;
             config.ClientId = clientId;
             return config;
@@ -3038,7 +3096,9 @@ namespace Streamiz.Kafka.Net
             List<string> keysToNotDisplay = new List<string> {
                 "sasl.password",
                 "ssl.key.password",
-                "ssl.keystore.password"
+                "ssl.keystore.password",
+                "ssl.key.pem",
+                "ssl.certificate.pem"
             };
 
             List<string> keysAlreadyPrint = new List<string>();
@@ -3103,6 +3163,16 @@ namespace Streamiz.Kafka.Net
                     sb.AppendLine($"\t\t{kp.Key}: \t{kp.Value}");
             }
 
+            // override external consumer config property
+            if (_overrideGlobalConsumerConfig.Any())
+            {
+                sb.AppendLine("\tOverride External Consumer property:");
+                var overrideExtConsumer = _overrideExternalConsumerConfig
+                    .Intercept((kp) => keysToNotDisplay.Contains(kp.Key), replaceValue);
+                foreach (var kp in overrideExtConsumer)
+                    sb.AppendLine($"\t\t{kp.Key}: \t{kp.Value}");
+            }
+
             // producer config property
             sb.AppendLine("\tProducer property:");
             var producersConfig = _producerConfig
@@ -3124,6 +3194,16 @@ namespace Streamiz.Kafka.Net
                 var overrideProducer = _overrideProducerConfig
                     .Intercept((kp) => keysToNotDisplay.Contains(kp.Key), replaceValue);
                 foreach (var kp in overrideProducer)
+                    sb.AppendLine($"\t\t{kp.Key}: \t{kp.Value}");
+            }
+
+            // override external producer config property
+            if (_overrideExternalProducerConfig.Any())
+            {
+                sb.AppendLine("\tOverride External Producer property:");
+                var overrideExtProducer = _overrideExternalProducerConfig
+                    .Intercept((kp) => keysToNotDisplay.Contains(kp.Key), replaceValue);
+                foreach (var kp in overrideExtProducer)
                     sb.AppendLine($"\t\t{kp.Key}: \t{kp.Value}");
             }
             
@@ -3182,6 +3262,15 @@ namespace Streamiz.Kafka.Net
         /// <returns>the key for restore consumer</returns>
         public string RestoreConsumerPrefix(string key)
             => $"{restoreConsumerPrefix}{key}";
+
+        /// <summary>
+        /// Prefix the key with the external consumer prefix.
+        /// Use this helper method if you want to override one specific configuration especially for the external consumer.
+        /// </summary>
+        /// <param name="key">Key configuration</param>
+        /// <returns>the key for external consumer</returns>
+        public string ExternalConsumerPrefix(string key)
+            => $"{externalConsumerPrefix}{key}";
         
         /// <summary>
         /// Prefix the key with the main producer prefix.
@@ -3191,6 +3280,15 @@ namespace Streamiz.Kafka.Net
         /// <returns>the key for main producer</returns>
         public string ProducerPrefix(string key)
             => $"{producerPrefix}{key}";
+
+        /// <summary>
+        /// Prefix the key with the external producer prefix.
+        /// Use this helper method if you want to override one specific configuration especially for the external producer.
+        /// </summary>
+        /// <param name="key">Key configuration</param>
+        /// <returns>the key for external producer</returns>
+        public string ExternalProducerPrefix(string key)
+            => $"{externalProducerPrefix}{key}";
 
         #endregion
     }

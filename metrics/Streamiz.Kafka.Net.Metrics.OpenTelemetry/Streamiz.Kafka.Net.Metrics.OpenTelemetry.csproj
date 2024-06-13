@@ -2,10 +2,11 @@
 
     <PropertyGroup>
         <TargetFrameworks>netstandard2.0;net5.0;net6.0</TargetFrameworks>
-        <Version>1.4.3</Version>
-        <PackageVersion>1.4.3</PackageVersion>
-        <AssemblyVersion>1.4.3</AssemblyVersion>
-        <FileVersion>1.4.3</FileVersion>
+      <VersionPrefix>1.6.1.100</VersionPrefix>
+      <VersionSuffix>custom</VersionSuffix>
+      <PackageVersion>1.6.1.100-custom</PackageVersion>
+      <AssemblyVersion>1.6.1.100</AssemblyVersion>
+      <FileVersion>1.6.1.100</FileVersion>
         <SignAssembly>true</SignAssembly>
         <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>

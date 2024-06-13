@@ -19,11 +19,11 @@
     <PackageIconUrl>https://raw.githubusercontent.com/LGouellec/kafka-streams-dotnet/master/resources/logo-kafka-stream-net.png</PackageIconUrl>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\key.snk</AssemblyOriginatorKeyFile>
-    <VersionPrefix>1.5.1.100</VersionPrefix>
+    <VersionPrefix>1.6.1.100</VersionPrefix>
     <VersionSuffix>custom</VersionSuffix>
-    <PackageVersion>1.5.1.100-custom</PackageVersion>
-    <AssemblyVersion>1.5.1.100</AssemblyVersion>
-    <FileVersion>1.5.1.100</FileVersion>
+    <PackageVersion>1.6.1.100-custom</PackageVersion>
+    <AssemblyVersion>1.6.1.100</AssemblyVersion>
+    <FileVersion>1.6.1.100</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -44,7 +44,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="RocksDB" Version="7.7.3.33461" />
-    <PackageReference Include="Confluent.Kafka" Version="2.1.1" />
+    <PackageReference Include="Confluent.Kafka" Version="2.4.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
   </ItemGroup>

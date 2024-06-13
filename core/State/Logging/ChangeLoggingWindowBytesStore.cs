@@ -10,9 +10,13 @@ namespace Streamiz.Kafka.Net.State.Logging
         WrappedStateStore<IWindowStore<Bytes, byte[]>>,
         IWindowStore<Bytes, byte[]>
     {
-        public ChangeLoggingWindowBytesStore(IWindowStore<Bytes, byte[]> wrapped) 
+        private int seqnum = 0;
+        private readonly bool retainDuplicates;
+        
+        public ChangeLoggingWindowBytesStore(IWindowStore<Bytes, byte[]> wrapped, bool retainDuplicates) 
             : base(wrapped)
         {
+            this.retainDuplicates = retainDuplicates;
         }
 
         protected virtual void Publish(Bytes key, byte[] value)
@@ -36,7 +40,14 @@ namespace Streamiz.Kafka.Net.State.Logging
         public void Put(Bytes key, byte[] value, long windowStartTimestamp)
         {
             wrapped.Put(key, value, windowStartTimestamp);
-            Publish(WindowKeyHelper.ToStoreKeyBinary(key, windowStartTimestamp, 0), value);
+            Publish(WindowKeyHelper.ToStoreKeyBinary(key, windowStartTimestamp, UpdateSeqnumForDups()), value);
+        }
+        
+        private int UpdateSeqnumForDups() {
+            if (retainDuplicates) {
+                seqnum = (seqnum + 1) & 0x7FFFFFFF;
+            }
+            return seqnum;
         }
     }
 }
