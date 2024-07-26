@@ -70,7 +70,7 @@ namespace Streamiz.Kafka.Net.Processors.Internal
             foreach (var partition in new List<TopicPartition>(assignment))
             {
                 var taskId = builder.GetTaskIdFromPartition(partition);
-                if (!activeTasks.ContainsKey(taskId))
+                if (activeTasks.ContainsKey(taskId))
                 {
                     activeTasks[taskId].Close();
                     activeTasks.TryRemove(taskId, out _);
