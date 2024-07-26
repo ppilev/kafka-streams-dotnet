@@ -47,13 +47,13 @@ namespace Streamiz.Kafka.Net.Tests.Private
         {
             streamConfigMock.Setup(x => x.PollMs).Throws(new Exception("boom"));
 
-            Assert.Throws<StreamsException>(() => globalStreamThread.Start(cancellationTokenSource.Token));
+            Assert.Throws<StreamsException>(() => globalStreamThread.Start());
         }
 
         [Test]
         public void ShouldBeRunningAfterSuccesfullStart()
         {
-            globalStreamThread.Start(cancellationTokenSource.Token);
+            globalStreamThread.Start();
 
             // we need to wait for thread to set running state
             Thread.Sleep(100);
@@ -65,7 +65,7 @@ namespace Streamiz.Kafka.Net.Tests.Private
         {
             var token = cancellationTokenSource.Token;
 
-            globalStreamThread.Start(token);
+            globalStreamThread.Start();
             cancellationTokenSource.Cancel();
 
             // thread should stop after some time
@@ -78,7 +78,7 @@ namespace Streamiz.Kafka.Net.Tests.Private
         {
             var token = cancellationTokenSource.Token;
 
-            globalStreamThread.Start(token);
+            globalStreamThread.Start();
             cancellationTokenSource.Cancel();
 
             // thread should stop after some time
@@ -91,7 +91,7 @@ namespace Streamiz.Kafka.Net.Tests.Private
         {
             var token = cancellationTokenSource.Token;
 
-            globalStreamThread.Start(token);
+            globalStreamThread.Start();
             cancellationTokenSource.Cancel();
 
             // thread should stop after some time
@@ -105,7 +105,7 @@ namespace Streamiz.Kafka.Net.Tests.Private
             globalConsumerMock.Setup(x => x.Close()).Throws(new Exception());
             var token = cancellationTokenSource.Token;
 
-            globalStreamThread.Start(token);
+            globalStreamThread.Start();
             cancellationTokenSource.Cancel();
 
             // thread should stop after some time
@@ -122,7 +122,7 @@ namespace Streamiz.Kafka.Net.Tests.Private
             };
             globalStateMaintainerMock.Setup(x => x.Initialize()).Returns(partitionOffsetDictionary);
 
-            globalStreamThread.Start(cancellationTokenSource.Token);
+            globalStreamThread.Start();
 
             var parts = partitionOffsetDictionary.Keys.Select(o => new TopicPartitionOffset(o, Offset.Beginning));
             globalConsumerMock.Verify(x => x.Assign(parts));
@@ -139,7 +139,7 @@ namespace Streamiz.Kafka.Net.Tests.Private
                 .Returns(result2)
                 .Returns((ConsumeResult<byte[], byte[]>) null);
 
-            globalStreamThread.Start(cancellationTokenSource.Token);
+            globalStreamThread.Start();
 
             // wait some time so that thread can process data
             Thread.Sleep(100);
@@ -151,7 +151,7 @@ namespace Streamiz.Kafka.Net.Tests.Private
         public void ShouldNotFlushTooSoon()
         {
             streamConfigMock.Setup(x => x.CommitIntervalMs).Returns(100);
-            globalStreamThread.Start(cancellationTokenSource.Token);
+            globalStreamThread.Start();
 
             // this should be true as the thread should wait 100ms to flush
             globalStateMaintainerMock.Verify(x => x.FlushState(), Times.Never);
@@ -161,7 +161,7 @@ namespace Streamiz.Kafka.Net.Tests.Private
         public void ShouldFlush()
         {
             streamConfigMock.Setup(x => x.CommitIntervalMs).Returns(10);
-            globalStreamThread.Start(cancellationTokenSource.Token);
+            globalStreamThread.Start();
 
             Thread.Sleep(50);
             // we are waiting longer than CommitIntervalMs so thread should already flush at least once
