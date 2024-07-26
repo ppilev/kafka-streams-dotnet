@@ -19,11 +19,11 @@
     <PackageIconUrl>https://raw.githubusercontent.com/LGouellec/kafka-streams-dotnet/master/resources/logo-kafka-stream-net.png</PackageIconUrl>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\key.snk</AssemblyOriginatorKeyFile>
-    <VersionPrefix>1.6.1.104</VersionPrefix>
+    <VersionPrefix>1.6.1.105</VersionPrefix>
     <VersionSuffix>custom</VersionSuffix>
-    <PackageVersion>1.6.1.104-custom</PackageVersion>
-    <AssemblyVersion>1.6.1.104</AssemblyVersion>
-    <FileVersion>1.6.1.104</FileVersion>
+    <PackageVersion>1.6.1.105-custom</PackageVersion>
+    <AssemblyVersion>1.6.1.105</AssemblyVersion>
+    <FileVersion>1.6.1.105</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
