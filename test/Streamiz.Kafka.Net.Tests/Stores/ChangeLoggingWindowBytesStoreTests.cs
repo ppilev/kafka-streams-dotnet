@@ -1,9 +1,13 @@
-﻿using Confluent.Kafka;
+﻿using System;
+using System.Collections.Generic;
+using Confluent.Kafka;
 using Moq;
 using NUnit.Framework;
 using Streamiz.Kafka.Net.Crosscutting;
 using Streamiz.Kafka.Net.Kafka;
 using Streamiz.Kafka.Net.Kafka.Internal;
+using Streamiz.Kafka.Net.Metrics;
+using Streamiz.Kafka.Net.Metrics.Internal;
 using Streamiz.Kafka.Net.Mock;
 using Streamiz.Kafka.Net.Mock.Sync;
 using Streamiz.Kafka.Net.Processors;
@@ -12,25 +16,21 @@ using Streamiz.Kafka.Net.SerDes;
 using Streamiz.Kafka.Net.State;
 using Streamiz.Kafka.Net.State.InMemory;
 using Streamiz.Kafka.Net.State.Logging;
-using System;
-using System.Collections.Generic;
-using Streamiz.Kafka.Net.Metrics;
-using Streamiz.Kafka.Net.Metrics.Internal;
 
 namespace Streamiz.Kafka.Net.Tests.Stores
 {
     public class ChangeLoggingWindowBytesStoreTests
     {
-        private StreamConfig config = null;
-        private ChangeLoggingWindowBytesStore store = null;
-        private ProcessorContext context = null;
-        private TaskId id = null;
-        private TopicPartition partition = null;
-        private ProcessorStateManager stateManager = null;
-        private Mock<AbstractTask> task = null;
+        private StreamConfig config;
+        private ChangeLoggingWindowBytesStore store;
+        private ProcessorContext context;
+        private TaskId id;
+        private TopicPartition partition;
+        private ProcessorStateManager stateManager;
+        private Mock<AbstractTask> task;
 
-        private SyncKafkaSupplier kafkaSupplier = null;
-        private IRecordCollector recordCollector = null;
+        private SyncKafkaSupplier kafkaSupplier;
+        private IRecordCollector recordCollector;
         private static StringSerDes stringSerDes = new StringSerDes();
         private static TimeWindowedSerDes<string> windowSerDes = new TimeWindowedSerDes<string>(stringSerDes, TimeSpan.FromSeconds(1).Milliseconds);
 
@@ -38,7 +38,7 @@ namespace Streamiz.Kafka.Net.Tests.Stores
         public void Begin()
         {
             config = new StreamConfig();
-            config.ApplicationId = $"unit-test-changelogging-w";
+            config.ApplicationId = "unit-test-changelogging-w";
 
             id = new TaskId { Id = 0, Partition = 0 };
             partition = new TopicPartition("source", 0);
@@ -47,9 +47,14 @@ namespace Streamiz.Kafka.Net.Tests.Stores
 
             var producerConfig = new ProducerConfig();
             producerConfig.ClientId = "producer-1";
+            
+            var adminConfig = new AdminClientConfig();
+            adminConfig.ClientId = "admin-client";
+            
             var producerClient = kafkaSupplier.GetProducer(producerConfig);
-
-            recordCollector = new RecordCollector("p-1", config, id, new NoRunnableSensor("s", "s", MetricsRecordingLevel.DEBUG));
+            var adminClient = kafkaSupplier.GetAdmin(adminConfig);
+            
+            recordCollector = new RecordCollector("p-1", config, id, new NoRunnableSensor("s", "s", MetricsRecordingLevel.DEBUG), adminClient);
             recordCollector.Init(ref producerClient);
 
             var changelogsTopics = new Dictionary<string, string>{

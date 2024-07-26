@@ -8,7 +8,6 @@ using Streamiz.Kafka.Net.SerDes;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using Streamiz.Kafka.Net.Metrics;
 using Streamiz.Kafka.Net.Stream.Internal;
@@ -225,6 +224,12 @@ namespace Streamiz.Kafka.Net.Mock
                     throw new StreamsException($"Test topology driver can't initiliaze state after {startTimeout.TotalSeconds} seconds !");
                 }
             }
+        }
+        
+        public void TriggerCommit()
+        {
+            throw new NotImplementedException();
+            //((StreamThread)threadTopology)?.Manager.CommitAll();
         }
 
         #endregion

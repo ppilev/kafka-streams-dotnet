@@ -68,11 +68,11 @@ namespace Streamiz.Kafka.Net
         /// </summary>
         public virtual string StateDir => $"{Path.Combine(Configuration.StateDir, Configuration.ApplicationId, Id.ToString())}";
 
-        // FOR TESTING
         internal ProcessorContext()
         {
+            
         }
-
+        
         internal ProcessorContext(AbstractTask task, IStreamConfig configuration, IStateManager stateManager,
             StreamMetricsRegistry streamMetricsRegistry)
         { 
@@ -91,6 +91,11 @@ namespace Streamiz.Kafka.Net
             return this;
         }
 
+        internal void SetRecordMetaData(IRecordContext context)
+        {
+            RecordContext = context;
+        }
+        
         internal void SetRecordMetaData(ConsumeResult<byte[], byte[]> result)
         {
             RecordContext = new RecordContext(result);

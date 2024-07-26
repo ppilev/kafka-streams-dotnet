@@ -2,6 +2,7 @@
 using Streamiz.Kafka.Net.SerDes;
 using System;
 using System.Collections.Generic;
+using Streamiz.Kafka.Net.Table;
 
 namespace Streamiz.Kafka.Net.State
 {
@@ -30,8 +31,8 @@ namespace Streamiz.Kafka.Net.State
         /// Value serdes
         /// </summary>
         protected readonly ISerDes<V> valueSerdes;
-        
-        // private bool enableCaching;
+
+        private bool enableCaching = false;
         private bool enableLogging = true;
 
         /// <summary>
@@ -60,6 +61,16 @@ namespace Streamiz.Kafka.Net.State
         public bool LoggingEnabled => enableLogging;
 
         /// <summary>
+        /// Caching enabled or not
+        /// </summary>
+        public bool CachingEnabled => enableCaching;
+
+        /// <summary>
+        /// Cache size of the storage
+        /// </summary>
+        public CacheSize CacheSize { get; private set; }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="name"></param>
@@ -76,9 +87,10 @@ namespace Streamiz.Kafka.Net.State
         /// Activate caching
         /// </summary>
         /// <returns></returns>
-        public IStoreBuilder<T> WithCachingEnabled()
+        public IStoreBuilder<T> WithCachingEnabled(CacheSize cacheSize = null)
         {
-            //enableCaching = true;
+            enableCaching = true;
+            CacheSize = cacheSize;
             return this;
         }
 
@@ -88,7 +100,7 @@ namespace Streamiz.Kafka.Net.State
         /// <returns></returns>
         public IStoreBuilder<T> WithCachingDisabled()
         {
-            //enableCaching = false;
+            enableCaching = false;
             return this;
         }
 

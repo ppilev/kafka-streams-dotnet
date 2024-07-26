@@ -13,7 +13,6 @@ using Streamiz.Kafka.Net.Processors;
 using Streamiz.Kafka.Net.Processors.Internal;
 using Streamiz.Kafka.Net.SerDes;
 using Streamiz.Kafka.Net.State;
-using Streamiz.Kafka.Net.State.RocksDb;
 
 namespace Streamiz.Kafka.Net
 {
@@ -343,6 +342,11 @@ namespace Streamiz.Kafka.Net
         /// </summary>
         TimeSpan LogProcessingSummary { get; set; }
         
+        /// <summary>
+        /// Define the default maximum number of memory bytes to be used for state stores cache for a single store. (default: 5Mb)
+        /// </summary>
+        long DefaultStateStoreCacheMaxBytes { get; set; }
+        
         #endregion
         
         #region Middlewares
@@ -509,6 +513,7 @@ namespace Streamiz.Kafka.Net
         private const string deserializationExceptionHandlerCst = "deserialization.exception.handler";
         private const string productionExceptionHandlerCst = "production.exception.handler";
         private const string logProcessingSummaryCst = "log.processing.summary";
+        private const string stateStoreCacheMaxBytesCst = "statestore.cache.max.bytes";
         
         /// <summary>
         /// Default commit interval in milliseconds when exactly once is not enabled
@@ -2277,11 +2282,12 @@ namespace Streamiz.Kafka.Net
             MetricsIntervalMs = (long)TimeSpan.FromSeconds(30).TotalMilliseconds;
             MetricsRecording = MetricsRecordingLevel.INFO;
             LogProcessingSummary = TimeSpan.FromMinutes(1);
-            MetricsReporter = (_) => { }; // nothing by default, maybe another behavior in future
+            MetricsReporter = _ => { }; // nothing by default, maybe another behavior in future
             ExposeLibrdKafkaStats = false;
             StartTaskDelayMs = 5000;
             ParallelProcessing = false;
             MaxDegreeOfParallelism = 8;
+            DefaultStateStoreCacheMaxBytes = 5 * 1024 * 1024;
 
             _consumerConfig = new ConsumerConfig();
             _producerConfig = new ProducerConfig();
@@ -2748,6 +2754,17 @@ namespace Streamiz.Kafka.Net
         {
             get => configProperties[logProcessingSummaryCst];
             set => configProperties.AddOrUpdate(logProcessingSummaryCst, value);
+        }
+        
+        /// <summary>
+        /// Maximum number of memory bytes to be used for state stores cache for a single store. (default: 5Mb)
+        /// </summary>
+        [StreamConfigProperty("" + stateStoreCacheMaxBytesCst)]
+
+        public long DefaultStateStoreCacheMaxBytes        
+        {
+            get => configProperties[stateStoreCacheMaxBytesCst];
+            set => configProperties.AddOrUpdate(stateStoreCacheMaxBytesCst, value);
         }
 
         /// <summary>
