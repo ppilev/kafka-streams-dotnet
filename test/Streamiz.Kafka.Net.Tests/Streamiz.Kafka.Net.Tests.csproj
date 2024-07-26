@@ -9,11 +9,11 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <StartupObject></StartupObject>
-    <VersionPrefix>1.6.1.102</VersionPrefix>
+    <VersionPrefix>1.6.1.104</VersionPrefix>
     <VersionSuffix>custom</VersionSuffix>
-    <PackageVersion>1.6.1.102-custom</PackageVersion>
-    <AssemblyVersion>1.6.1.102</AssemblyVersion>
-    <FileVersion>1.6.1.102</FileVersion>
+    <PackageVersion>1.6.1.104-custom</PackageVersion>
+    <AssemblyVersion>1.6.1.104</AssemblyVersion>
+    <FileVersion>1.6.1.104</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
