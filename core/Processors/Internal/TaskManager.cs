@@ -61,7 +61,6 @@ namespace Streamiz.Kafka.Net.Processors.Internal
             Consumer = consumer;
         }
 
-
         public void CreateTasks(ICollection<TopicPartition> assignment)
         {
             CurrentTask = null;

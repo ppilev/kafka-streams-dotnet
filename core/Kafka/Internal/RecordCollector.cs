@@ -135,7 +135,7 @@ namespace Streamiz.Kafka.Net.Kafka.Internal
                                 "There are messages still pending to retry in the backpressure queue. These messages won't longer flush into the corresponding topic !");
 
                         retryRecordContext.Clear();
-                        producer.Dispose();
+                        //producer.Dispose();
                         producer = null;
                         CheckForException();
                     }
